@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
 import { DoorOpen, MapPin, Plus, Trash2, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 import { Alert, EmptyState, Spinner } from '../components/ui'
 import Modal from '../components/Modal'
 import { cn } from '../lib/utils'
 
-const emptyRoom = { name: '', location: '', capacity: '', facilities: '' }
+const emptyRoom = { name: '', location: '', capacity: '', facilities: '', department_id: '' }
 
 export default function Rooms() {
+  const { profile } = useAuth()
+  const isAdmin = profile?.role === 'admin'
   const [rooms, setRooms] = useState([])
+  const [departments, setDepartments] = useState([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(emptyRoom)
@@ -17,29 +21,54 @@ export default function Rooms() {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('meeting_rooms').select('*').order('name')
-      setRooms(data || [])
+      const { data: r } = await supabase
+        .from('meeting_rooms')
+        .select('*, department:departments(name)')
+        .order('name')
+      setRooms(r || [])
+      if (isAdmin) {
+        const { data: d } = await supabase.from('departments').select('id, name').order('name')
+        setDepartments(d || [])
+      }
       setLoading(false)
     }
     load()
-  }, [])
+  }, [isAdmin])
+
+  const openModal = () => {
+    setForm({ ...emptyRoom, department_id: isAdmin ? '' : profile?.department_id || '' })
+    setError('')
+    setOpen(true)
+  }
 
   const submit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim()) return
+    if (!form.name.trim()) {
+      setError('Room name is required.')
+      return
+    }
+    if (!isAdmin && !profile?.department_id) {
+      setError('You must belong to a department to add a room.')
+      return
+    }
+    if (isAdmin && !form.department_id) {
+      setError('Choose the department this room belongs to.')
+      return
+    }
     setSaving(true)
     setError('')
     const { data, error } = await supabase
       .from('meeting_rooms')
       .insert({
         name: form.name.trim(),
+        department_id: isAdmin ? form.department_id : profile.department_id,
         location: form.location,
         capacity: Number(form.capacity) || 0,
         facilities: form.facilities
           ? form.facilities.split(',').map((f) => f.trim()).filter(Boolean)
           : [],
       })
-      .select()
+      .select('*, department:departments(name)')
       .single()
     setSaving(false)
     if (error) {
@@ -65,9 +94,13 @@ export default function Rooms() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Meeting rooms</h1>
-          <p className="text-sm text-slate-500">Manage physical rooms available for scheduling</p>
+          <p className="text-sm text-slate-500">
+            {isAdmin
+              ? 'Manage rooms for every department'
+              : `Rooms for ${departments.find((d) => d.id === profile?.department_id)?.name || 'your department'}`}
+          </p>
         </div>
-        <button onClick={() => setOpen(true)} className="btn-primary px-3 py-2 text-sm">
+        <button onClick={openModal} className="btn-primary px-3 py-2 text-sm">
           <Plus size={16} />
           Add room
         </button>
@@ -96,8 +129,13 @@ export default function Rooms() {
                 </button>
               </div>
               <h3 className="font-semibold text-slate-900">{room.name}</h3>
+              {room.department && (
+                <span className="mt-1 inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                  {room.department.name}
+                </span>
+              )}
               {room.location && (
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
+                <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
                   <MapPin size={14} className="text-slate-400" />
                   {room.location}
                 </p>
@@ -122,6 +160,23 @@ export default function Rooms() {
 
       <Modal open={open} onClose={() => setOpen(false)} title="Add meeting room">
         <form onSubmit={submit} className="space-y-3">
+          {isAdmin && (
+            <div>
+              <label className="label">Department *</label>
+              <select
+                className="input"
+                value={form.department_id}
+                onChange={(e) => setForm((f) => ({ ...f, department_id: e.target.value }))}
+              >
+                <option value="">Select department</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="label">Room name *</label>
             <input
