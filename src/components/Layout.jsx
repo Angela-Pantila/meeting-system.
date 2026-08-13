@@ -21,7 +21,6 @@ import NotificationBell from './NotificationBell'
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/meetings', label: 'Meetings', icon: Calendar, end: false },
-  { to: '/rooms', label: 'Rooms', icon: DoorOpen, end: false },
 ]
 
 function SidebarContent({ onNavigate }) {
@@ -36,6 +35,7 @@ function SidebarContent({ onNavigate }) {
   const canCreate = profile?.role === 'admin' || profile?.role === 'head'
   const isAdmin = profile?.role === 'admin'
   const canViewSchedule = profile?.role === 'admin' || profile?.role === 'head'
+  const canViewRooms = canViewSchedule
 
   return (
     <div className="flex h-full flex-col">
@@ -82,6 +82,21 @@ function SidebarContent({ onNavigate }) {
           >
             <CalendarSearch size={18} />
             Schedule
+          </NavLink>
+        )}
+        {canViewRooms && (
+          <NavLink
+            to="/rooms"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+              )
+            }
+          >
+            <DoorOpen size={18} />
+            Rooms
           </NavLink>
         )}
         {isAdmin && (
