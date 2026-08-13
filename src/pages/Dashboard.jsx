@@ -12,6 +12,7 @@ const statStyles = 'card flex items-center gap-4 p-4 sm:p-5'
 
 export default function Dashboard() {
   const { profile } = useAuth()
+  const canCreate = profile?.role === 'admin' || profile?.role === 'head'
   const [meetings, setMeetings] = useState([])
   const [myActions, setMyActions] = useState([])
   const [decisions, setDecisions] = useState(0)
@@ -83,10 +84,12 @@ export default function Dashboard() {
           </h1>
           <p className="text-sm text-slate-500">{today}</p>
         </div>
-        <Link to="/meetings/new" className="btn-primary">
-          <Plus size={16} />
-          Schedule meeting
-        </Link>
+        {canCreate && (
+          <Link to="/meetings/new" className="btn-primary">
+            <Plus size={16} />
+            Schedule meeting
+          </Link>
+        )}
       </div>
 
       {loading ? (
@@ -144,12 +147,18 @@ export default function Dashboard() {
                 <EmptyState
                   icon={Calendar}
                   title="No upcoming meetings"
-                  message="Schedule your first meeting to get started."
+                  message={
+                    canCreate
+                      ? 'Schedule your first meeting to get started.'
+                      : 'No upcoming meetings yet. Check back later.'
+                  }
                   action={
-                    <Link to="/meetings/new" className="btn-primary">
-                      <Plus size={16} />
-                      New meeting
-                    </Link>
+                    canCreate ? (
+                      <Link to="/meetings/new" className="btn-primary">
+                        <Plus size={16} />
+                        New meeting
+                      </Link>
+                    ) : null
                   }
                 />
               ) : (
