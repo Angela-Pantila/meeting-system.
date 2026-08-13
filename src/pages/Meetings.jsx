@@ -11,6 +11,7 @@ const filters = ['all', 'requested', 'scheduled', 'in_progress', 'completed', 'c
 
 export default function Meetings() {
   const { profile } = useAuth()
+  const canCreate = profile?.role === 'admin' || profile?.role === 'head'
   const [meetings, setMeetings] = useState([])
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('all')
@@ -70,10 +71,12 @@ export default function Meetings() {
           <h1 className="text-2xl font-bold text-slate-900">Meetings</h1>
           <p className="text-sm text-slate-500">Requests, schedules and past meetings</p>
         </div>
-        <Link to="/meetings/new" className="btn-primary">
-          <Plus size={16} />
-          New meeting
-        </Link>
+        {canCreate && (
+          <Link to="/meetings/new" className="btn-primary">
+            <Plus size={16} />
+            New meeting
+          </Link>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -112,11 +115,13 @@ export default function Meetings() {
           title="No meetings found"
           message={
             meetings.length === 0
-              ? 'Create your first meeting to start planning.'
+              ? canCreate
+                ? 'Create your first meeting to start planning.'
+                : 'No meetings yet. Your department head will schedule them.'
               : 'Try adjusting your filters or search.'
           }
           action={
-            meetings.length === 0 ? (
+            meetings.length === 0 && canCreate ? (
               <Link to="/meetings/new" className="btn-primary">
                 <Plus size={16} />
                 New meeting
