@@ -49,6 +49,13 @@ function CanViewSchedule({ children }) {
   return children
 }
 
+function CanViewRooms({ children }) {
+  const { profile, loading } = useAuth()
+  if (loading) return <Loading />
+  if (profile?.role !== 'admin' && profile?.role !== 'head') return <Navigate to="/meetings" replace />
+  return children
+}
+
 export default function App() {
   return (
     <Routes>
@@ -86,7 +93,14 @@ export default function App() {
           }
         />
         <Route path="/meetings/:id" element={<MeetingDetail />} />
-        <Route path="/rooms" element={<Rooms />} />
+        <Route
+          path="/rooms"
+          element={
+            <CanViewRooms>
+              <Rooms />
+            </CanViewRooms>
+          }
+        />
         <Route
           path="/schedule"
           element={
