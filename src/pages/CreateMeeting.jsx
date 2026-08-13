@@ -53,6 +53,10 @@ export default function CreateMeeting() {
     load()
   }, [isAdmin, profile?.department_id])
 
+  const roomsForDept = form.department_id
+    ? rooms.filter((r) => r.department_id === form.department_id)
+    : rooms
+
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const toggleParticipant = (id) => {
@@ -256,13 +260,18 @@ export default function CreateMeeting() {
               <label className="label">Meeting room</label>
               <select className="input" value={form.room_id} onChange={set('room_id')}>
                 <option value="">No room</option>
-                {rooms.map((r) => (
+                {roomsForDept.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.name}
                     {r.location ? ` — ${r.location}` : ''}
                   </option>
                 ))}
               </select>
+              {roomsForDept.length === 0 && (
+                <p className="mt-1 text-xs text-slate-500">
+                  No rooms for this department yet. Ask the admin to add one.
+                </p>
+              )}
             </div>
             <div>
               <label className="label">Online meeting link</label>
