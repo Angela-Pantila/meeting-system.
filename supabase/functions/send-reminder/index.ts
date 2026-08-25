@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
-import { Resend } from 'https://esm.sh/resend@4.0.0'
+import nodemailer from 'https://esm.sh/nodemailer@6.9.16'
 
 Deno.serve(async (req) => {
   const cors = {
@@ -75,16 +75,25 @@ Deno.serve(async (req) => {
       })
     }
 
-    const apiKey = Deno.env.get('RESEND_API_KEY')
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured' }), {
+    const gmailUser = Deno.env.get('GMAIL_USER')
+    const gmailPass = Deno.env.get('GMAIL_APP_PASSWORD')
+    if (!gmailUser || !gmailPass) {
+      return new Response(JSON.stringify({ error: 'GMAIL_USER or GMAIL_APP_PASSWORD not configured' }), {
         status: 500,
         headers: { ...cors, 'Content-Type': 'application/json' },
       })
     }
 
-    const resend = new Resend(apiKey)
-    const from = Deno.env.get('RESEND_FROM_EMAIL') || 'Meetings <onboarding@resend.dev>'
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: gmailUser,
+        pass: gmailPass,
+      },
+    })
+
     const meetingTime = new Intl.DateTimeFormat('en-US', {
       dateStyle: 'full',
       timeStyle: 'short',
@@ -93,11 +102,12 @@ Deno.serve(async (req) => {
     let sent = 0
     const esc = (s: string) =>
       s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
     for (const email of emails) {
       try {
-        const { error } = await resend.emails.send({
-          from,
-          to: [email],
+        await transporter.sendMail({
+          from: `"Meeting System" <${gmailUser}>`,
+          to: email,
           subject: `Reminder: ${meeting.title}`,
           html: `
             <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px">
@@ -107,8 +117,7 @@ Deno.serve(async (req) => {
             </div>
           `,
         })
-        if (error) console.error('send failed for', email, error)
-        else sent += 1
+        sent += 1
       } catch (err) {
         console.error('send error for', email, err)
       }
