@@ -234,10 +234,37 @@ export default function MeetingDetail() {
 
     let status = 'sent'
     if (reminderForm.channel === 'email') {
-      const { error: fnErr } = await supabase.functions.invoke('send-reminder', {
-        body: { meetingId: id, message: reminderForm.message.trim() },
-      })
-      status = fnErr ? 'failed' : 'sent'
+      const emails = participants.map((p) => p.profile?.email).filter(Boolean)
+      if (emails.length) {
+        const meetingTime = new Intl.DateTimeFormat('en-US', {
+          dateStyle: 'full',
+          timeStyle: 'short',
+        }).format(new Date(meeting.start_time))
+        const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+        try {
+          const res = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: emails,
+              subject: `Reminder: ${meeting.title}`,
+              html: `
+                <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                  <h2 style="margin:0 0 8px">${esc(meeting.title)}</h2>
+                  <p style="color:#475569;font-size:14px;margin:0 0 16px">${meetingTime}</p>
+                  <p style="font-size:15px;line-height:1.5;white-space:pre-line">${esc(reminderForm.message.trim())}</p>
+                </div>
+              `,
+            }),
+          })
+          const data = await res.json()
+          status = res.ok && data.sent > 0 ? 'sent' : 'failed'
+        } catch {
+          status = 'failed'
+        }
+      } else {
+        status = 'failed'
+      }
     }
 
     const { data: reminder, error: remErr } = await supabase
