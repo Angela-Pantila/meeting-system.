@@ -329,11 +329,7 @@ export default function MeetingDetail() {
         { label: 'Accept', value: 'scheduled', hidden: !isAdmin, className: 'bg-emerald-600 text-white hover:bg-emerald-700' },
         { label: 'Decline', value: 'cancelled', hidden: !isAdmin, className: 'bg-rose-600 text-white hover:bg-rose-700' },
       ].filter((a) => !a.hidden)
-    : [
-        { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' },
-        { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' },
-        { label: 'Cancel meeting', value: 'cancelled', hidden: meeting.status === 'cancelled' },
-      ].filter((a) => !a.hidden)
+    : []
 
   return (
     <div className="space-y-5">
