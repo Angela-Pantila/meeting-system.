@@ -321,9 +321,11 @@ export default function MeetingDetail() {
   const isManager = profile?.role === 'admin' || profile?.role === 'head'
 
   const statusActions = [
-    { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' },
-    { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' },
-    { label: 'Cancel meeting', value: 'cancelled', hidden: meeting.status === 'cancelled' },
+    { label: 'Accept', value: 'scheduled', hidden: meeting.status !== 'requested', className: 'bg-emerald-600 text-white hover:bg-emerald-700' },
+    { label: 'Decline', value: 'cancelled', hidden: meeting.status !== 'requested', className: 'bg-rose-600 text-white hover:bg-rose-700' },
+    { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' || meeting.status === 'requested' || meeting.status === 'cancelled' },
+    { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' || meeting.status === 'requested' || meeting.status === 'cancelled' },
+    { label: 'Cancel meeting', value: 'cancelled', hidden: meeting.status === 'cancelled' || meeting.status === 'requested' },
   ].filter((a) => !a.hidden)
 
   return (
@@ -411,7 +413,11 @@ export default function MeetingDetail() {
                   Send reminder
                 </button>
                 {statusActions.map((a) => (
-                  <button key={a.value} onClick={() => updateStatus(a.value)} className="btn-secondary px-3 py-1.5 text-xs">
+                  <button
+                    key={a.value}
+                    onClick={() => updateStatus(a.value)}
+                    className={cn('px-3 py-1.5 text-xs font-semibold rounded-lg transition', a.className || 'btn-secondary')}
+                  >
                     {a.label}
                   </button>
                 ))}
