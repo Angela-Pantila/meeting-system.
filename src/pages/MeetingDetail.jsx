@@ -329,13 +329,16 @@ export default function MeetingDetail() {
   const isManager = profile?.role === 'admin' || profile?.role === 'head'
   const isAdmin = profile?.role === 'admin'
 
-  const statusActions = [
-    { label: 'Accept', value: 'scheduled', hidden: meeting.status !== 'requested' || !isAdmin, className: 'bg-emerald-600 text-white hover:bg-emerald-700' },
-    { label: 'Decline', value: 'cancelled', hidden: meeting.status !== 'requested' || !isAdmin, className: 'bg-rose-600 text-white hover:bg-rose-700' },
-    { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' || meeting.status === 'requested' },
-    { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' || meeting.status === 'requested' },
-    { label: 'Cancel meeting', value: 'cancelled', hidden: meeting.status === 'cancelled' || meeting.status === 'requested' },
-  ].filter((a) => !a.hidden)
+  const statusActions = meeting.status === 'requested'
+    ? [
+        { label: 'Accept', value: 'scheduled', hidden: !isAdmin, className: 'bg-emerald-600 text-white hover:bg-emerald-700' },
+        { label: 'Decline', value: 'cancelled', hidden: !isAdmin, className: 'bg-rose-600 text-white hover:bg-rose-700' },
+      ].filter((a) => !a.hidden)
+    : [
+        { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' },
+        { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' },
+        { label: 'Cancel meeting', value: 'cancelled', hidden: meeting.status === 'cancelled' },
+      ].filter((a) => !a.hidden)
 
   return (
     <div className="space-y-5">
