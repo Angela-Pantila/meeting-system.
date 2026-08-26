@@ -150,8 +150,16 @@ export default function MeetingDetail() {
 
   const updateStatus = async (status) => {
     const { error } = await supabase.from('meetings').update({ status }).eq('id', id)
-    if (!error) setMeeting((m) => ({ ...m, status }))
-    else setError(error.message)
+    if (error) {
+      setError(error.message)
+      return
+    }
+    const { data: updated } = await supabase
+      .from('meetings')
+      .select('*')
+      .eq('id', id)
+      .single()
+    if (updated) setMeeting(updated)
   }
 
   const openScheduleModal = () => {
