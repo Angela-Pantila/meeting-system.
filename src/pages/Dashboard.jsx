@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, CalendarCheck, CheckCircle2, ListChecks, Plus, Video } from 'lucide-react'
+import { Calendar, CalendarCheck, CheckCircle2, ListChecks, Plus, Video, Building2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MeetingCard from '../components/MeetingCard'
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [meetings, setMeetings] = useState([])
   const [myActions, setMyActions] = useState([])
   const [decisions, setDecisions] = useState(0)
+  const [departments, setDepartments] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -57,6 +58,23 @@ export default function Dashboard() {
         .from('decisions')
         .select('*', { count: 'exact', head: true })
       setDecisions(count || 0)
+
+      if (profile?.role === 'admin') {
+        const { data: depts } = await supabase.from('departments').select('id, name, code')
+        const deptIds = (depts || []).map((x) => x.id)
+        let deptCounts = {}
+        if (deptIds.length) {
+          const { data: profs } = await supabase
+            .from('profiles')
+            .select('department_id')
+            .in('department_id', deptIds)
+          ;(profs || []).forEach((p) => {
+            deptCounts[p.department_id] = (deptCounts[p.department_id] || 0) + 1
+          })
+        }
+        setDepartments((depts || []).map((d) => ({ ...d, member_count: deptCounts[d.id] || 0 })))
+      }
+
       setLoading(false)
     }
     load()
@@ -142,6 +160,34 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          {profile?.role === 'admin' && departments.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-900">Departments</h2>
+                <Link to="/departments" className="text-sm font-medium text-brand-600 hover:underline">
+                  Manage
+                </Link>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {departments.map((d) => (
+                  <Link
+                    key={d.id}
+                    to="/departments"
+                    className="card flex items-center gap-3 p-4 transition hover:border-brand-300 hover:shadow-sm"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-600">
+                      <Building2 size={18} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">{d.name}</p>
+                      <p className="text-xs text-slate-500">{d.member_count} member{d.member_count === 1 ? '' : 's'}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-5">
             <div className="space-y-3 lg:col-span-3">
