@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -57,6 +57,12 @@ export default function CreateMeeting() {
     ? rooms.filter((r) => r.department_id === form.department_id)
     : rooms
 
+  const now = useMemo(() => {
+    const d = new Date()
+    d.setSeconds(d.getSeconds() + 1)
+    return d.toISOString().slice(0, 16)
+  }, [])
+
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const toggleParticipant = (id) => {
@@ -79,6 +85,10 @@ export default function CreateMeeting() {
     }
     if (new Date(form.end_time) <= new Date(form.start_time)) {
       setError('End time must be after the start time.')
+      return
+    }
+    if (new Date(form.start_time) < new Date()) {
+      setError('Start time cannot be in the past.')
       return
     }
     if (!form.department_id) {
@@ -242,6 +252,7 @@ export default function CreateMeeting() {
                 type="datetime-local"
                 className="input"
                 value={form.start_time}
+                min={now}
                 onChange={set('start_time')}
               />
             </div>
@@ -251,6 +262,7 @@ export default function CreateMeeting() {
                 type="datetime-local"
                 className="input"
                 value={form.end_time}
+                min={form.start_time || now}
                 onChange={set('end_time')}
               />
             </div>
