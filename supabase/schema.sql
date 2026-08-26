@@ -20,7 +20,7 @@ alter table public.departments enable row level security;
 
 -- ---------- Profiles (extends auth.users) ----------
 create table if not exists public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
+  id uuid primary key references public.profiles (id) on delete cascade,
   full_name text not null default '',
   email text not null default '',
   role text not null default 'staff'
@@ -61,7 +61,7 @@ create table if not exists public.meetings (
   end_time timestamptz not null,
   room_id uuid references public.meeting_rooms (id) on delete set null,
   online_link text default '',
-  created_by uuid references auth.users (id) on delete set null,
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -92,7 +92,7 @@ create table if not exists public.agenda_items (
   title text not null,
   description text default '',
   duration_minutes integer default 0,
-  presenter_id uuid references auth.users (id) on delete set null,
+  presenter_id uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -118,7 +118,7 @@ create table if not exists public.minutes (
   meeting_id uuid not null references public.meetings (id) on delete cascade,
   section text not null default 'General',
   content text not null,
-  created_by uuid references auth.users (id) on delete set null,
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -130,7 +130,7 @@ create table if not exists public.decisions (
   meeting_id uuid not null references public.meetings (id) on delete cascade,
   title text not null,
   description text default '',
-  created_by uuid references auth.users (id) on delete set null,
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -142,11 +142,11 @@ create table if not exists public.action_items (
   meeting_id uuid not null references public.meetings (id) on delete cascade,
   title text not null,
   description text default '',
-  assignee_id uuid references auth.users (id) on delete set null,
+  assignee_id uuid references public.profiles (id) on delete set null,
   due_date date,
   status text not null default 'open'
     check (status in ('open', 'in_progress', 'completed')),
-  created_by uuid references auth.users (id) on delete set null,
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   completed_at timestamptz
@@ -161,11 +161,11 @@ create table if not exists public.follow_ups (
   action_item_id uuid references public.action_items (id) on delete set null,
   title text not null,
   description text default '',
-  assignee_id uuid references auth.users (id) on delete set null,
+  assignee_id uuid references public.profiles (id) on delete set null,
   due_date date,
   status text not null default 'open'
     check (status in ('open', 'completed')),
-  created_by uuid references auth.users (id) on delete set null,
+  created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -180,7 +180,7 @@ create table if not exists public.meeting_reminders (
     check (channel in ('app', 'email')),
   status text not null default 'sent'
     check (status in ('sent', 'failed')),
-  sent_by uuid references auth.users (id) on delete set null,
+  sent_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -191,7 +191,7 @@ create table if not exists public.meeting_schedule_changes (
   id uuid primary key default gen_random_uuid(),
   meeting_id uuid not null references public.meetings (id) on delete cascade,
   reason text not null,
-  changed_by uuid references auth.users (id) on delete set null,
+  changed_by uuid references public.profiles (id) on delete set null,
   old_start timestamptz,
   new_start timestamptz,
   old_end timestamptz,
@@ -204,7 +204,7 @@ alter table public.meeting_schedule_changes enable row level security;
 -- ---------- In-app notifications ----------
 create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
   type text not null default 'info'
     check (type in ('info', 'reschedule', 'reminder', 'system')),
   title text not null,

@@ -11,19 +11,27 @@ drop policy if exists "departments select" on public.departments;
 create policy "departments select" on public.departments
   for select using (true);
 
--- Fix: meeting_participants foreign key to profiles (enables PostgREST joins)
-alter table public.meeting_participants
-  drop constraint if exists meeting_participants_user_id_fkey;
-alter table public.meeting_participants
-  add constraint meeting_participants_user_id_fkey
-  foreign key (user_id) references public.profiles (id) on delete cascade;
-
--- Fix: meeting_documents foreign key to profiles (enables PostgREST joins)
-alter table public.meeting_documents
-  drop constraint if exists meeting_documents_uploaded_by_fkey;
-alter table public.meeting_documents
-  add constraint meeting_documents_uploaded_by_fkey
-  foreign key (uploaded_by) references public.profiles (id) on delete set null;
+-- Fix: all FK columns to profiles (enables PostgREST joins across all tables)
+DO $$
+DECLARE
+  r record;
+BEGIN
+  FOR r IN
+    SELECT tc.table_name, tc.constraint_name, kcu.column_name
+    FROM information_schema.table_constraints tc
+    JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+    JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name
+    WHERE tc.constraint_type = 'FOREIGN KEY'
+      AND ccu.table_schema = 'auth' AND ccu.table_name = 'users'
+      AND tc.table_schema = 'public'
+      AND tc.table_name != 'profiles'
+  LOOP
+    EXECUTE format(
+      'ALTER TABLE public.%I DROP CONSTRAINT IF EXISTS %I; ALTER TABLE public.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES public.profiles(id) ON DELETE SET NULL',
+      r.table_name, r.constraint_name, r.table_name, r.constraint_name, r.column_name
+    );
+  END LOOP;
+END $$;
 
 -- ---------- 1. Profiles: stop self-promotion ----------
 -- Previously any user could UPDATE their own row and set role='admin'.
