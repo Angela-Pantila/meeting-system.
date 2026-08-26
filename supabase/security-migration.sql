@@ -26,13 +26,6 @@ create policy "profiles select" on public.profiles
   );
 create policy "profiles insert" on public.profiles
   for insert with check (auth.uid() = id and role = 'staff');
-create policy "profiles update self" on public.profiles
-  for update using (auth.uid() = id)
-  with check (
-    auth.uid() = id
-    and role = public.current_user_role()
-    and department_id is not distinct from public.current_user_department()
-  );
 create policy "profiles update admin" on public.profiles
   for update using (public.current_user_role() = 'admin')
   with check (public.current_user_role() = 'admin');

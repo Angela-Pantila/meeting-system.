@@ -316,7 +316,7 @@ create policy "departments update" on public.departments
 create policy "departments delete" on public.departments
   for delete using (public.current_user_role() = 'admin');
 
--- Profiles: department members read; users edit self (role/dept locked); admins edit anyone.
+-- Profiles: department members read; only admins edit.
 create policy "profiles select" on public.profiles
   for select using (
     public.current_user_role() = 'admin'
@@ -324,13 +324,6 @@ create policy "profiles select" on public.profiles
   );
 create policy "profiles insert" on public.profiles
   for insert with check (auth.uid() = id and role = 'staff');
-create policy "profiles update self" on public.profiles
-  for update using (auth.uid() = id)
-  with check (
-    auth.uid() = id
-    and role = public.current_user_role()
-    and department_id is not distinct from public.current_user_department()
-  );
 create policy "profiles update admin" on public.profiles
   for update using (public.current_user_role() = 'admin')
   with check (public.current_user_role() = 'admin');

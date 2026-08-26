@@ -1,24 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Building2, Mail, Phone, Save, User } from 'lucide-react'
+import { Building2, Mail, Phone, User } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { Alert } from '../components/ui'
 import StatusBadge from '../components/StatusBadge'
 import { avatarColor, initials } from '../lib/utils'
 import { cn } from '../lib/utils'
 
 export default function Profile() {
-  const { profile, user, refreshProfile } = useAuth()
-  const [fullName, setFullName] = useState(profile?.full_name || '')
-  const [contactNumber, setContactNumber] = useState(profile?.contact_number || '')
+  const { profile, user } = useAuth()
   const [department, setDepartment] = useState(null)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    setFullName(profile?.full_name || '')
-    setContactNumber(profile?.contact_number || '')
     if (profile?.department_id) {
       supabase
         .from('departments')
@@ -30,24 +22,6 @@ export default function Profile() {
       setDepartment(null)
     }
   }, [profile])
-
-  const submit = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    setError('')
-    setSaved(false)
-    const { error } = await supabase
-      .from('profiles')
-      .update({ full_name: fullName, contact_number: contactNumber })
-      .eq('id', user.id)
-    setSaving(false)
-    if (error) {
-      setError(error.message)
-      return
-    }
-    setSaved(true)
-    refreshProfile()
-  }
 
   return (
     <div className="mx-auto max-w-xl space-y-5">
@@ -82,18 +56,12 @@ export default function Profile() {
           </div>
         </div>
 
-        <form onSubmit={submit} className="space-y-4">
-          {error && <Alert>{error}</Alert>}
-          {saved && <Alert tone="success">Profile updated successfully.</Alert>}
+        <div className="space-y-4">
           <div>
             <label className="label">Full name</label>
             <div className="relative">
               <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                className="input pl-9"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
+              <input className="input pl-9" value={profile?.full_name || ''} disabled />
             </div>
           </div>
           <div>
@@ -107,22 +75,13 @@ export default function Profile() {
             <label className="label">Contact number</label>
             <div className="relative">
               <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                className="input pl-9"
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
-                placeholder="09XXXXXXXXX"
-              />
+              <input className="input pl-9" value={profile?.contact_number || ''} disabled />
             </div>
           </div>
           <p className="text-xs text-slate-500">
-            Your department and role are assigned by an administrator.
+            Contact an administrator to update your profile information.
           </p>
-          <button type="submit" disabled={saving} className="btn-primary w-full sm:w-auto">
-            <Save size={16} />
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   )
