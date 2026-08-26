@@ -8,6 +8,7 @@ import {
   CheckSquare,
   ClipboardList,
   DoorOpen,
+  ExternalLink,
   FileText,
   MapPin,
   Megaphone,
@@ -376,11 +377,21 @@ export default function MeetingDetail() {
             <button
               onClick={() => downloadIcs(meeting)}
               className="btn-secondary px-3 py-1.5 text-xs"
-              title="Add to Google Calendar"
+              title="Download .ics file"
             >
               <CalendarPlus size={14} />
               Add to calendar
             </button>
+            <a
+              href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(meeting.title)}&dates=${new Date(meeting.start_time).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}/${new Date(meeting.end_time).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}&details=${encodeURIComponent(meeting.description || '')}${meeting.online_link ? '&location=' + encodeURIComponent(meeting.online_link) : ''}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
+              title="Add to Google Calendar"
+            >
+              <ExternalLink size={14} />
+              Google Calendar
+            </a>
             {isManager && (
               <>
                 <button
