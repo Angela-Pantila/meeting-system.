@@ -332,8 +332,8 @@ export default function MeetingDetail() {
   const statusActions = [
     { label: 'Accept', value: 'scheduled', hidden: meeting.status !== 'requested' || !isAdmin, className: 'bg-emerald-600 text-white hover:bg-emerald-700' },
     { label: 'Decline', value: 'cancelled', hidden: meeting.status !== 'requested' || !isAdmin, className: 'bg-rose-600 text-white hover:bg-rose-700' },
-    { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' || meeting.status === 'requested' || meeting.status === 'cancelled' },
-    { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' || meeting.status === 'requested' || meeting.status === 'cancelled' },
+    { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' || meeting.status === 'requested' },
+    { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' || meeting.status === 'requested' },
     { label: 'Cancel meeting', value: 'cancelled', hidden: meeting.status === 'cancelled' || meeting.status === 'requested' },
   ].filter((a) => !a.hidden)
 
