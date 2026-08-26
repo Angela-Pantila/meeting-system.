@@ -11,6 +11,20 @@ drop policy if exists "departments select" on public.departments;
 create policy "departments select" on public.departments
   for select using (true);
 
+-- Fix: meeting_participants foreign key to profiles (enables PostgREST joins)
+alter table public.meeting_participants
+  drop constraint if exists meeting_participants_user_id_fkey;
+alter table public.meeting_participants
+  add constraint meeting_participants_user_id_fkey
+  foreign key (user_id) references public.profiles (id) on delete cascade;
+
+-- Fix: meeting_documents foreign key to profiles (enables PostgREST joins)
+alter table public.meeting_documents
+  drop constraint if exists meeting_documents_uploaded_by_fkey;
+alter table public.meeting_documents
+  add constraint meeting_documents_uploaded_by_fkey
+  foreign key (uploaded_by) references public.profiles (id) on delete set null;
+
 -- ---------- 1. Profiles: stop self-promotion ----------
 -- Previously any user could UPDATE their own row and set role='admin'.
 drop policy if exists "profiles select" on public.profiles;

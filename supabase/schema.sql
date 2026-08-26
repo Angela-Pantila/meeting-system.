@@ -72,7 +72,7 @@ alter table public.meetings enable row level security;
 create table if not exists public.meeting_participants (
   id uuid primary key default gen_random_uuid(),
   meeting_id uuid not null references public.meetings (id) on delete cascade,
-  user_id uuid not null references auth.users (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
   participant_role text not null default 'member'
     check (participant_role in ('organizer', 'chair', 'secretary', 'member', 'guest')),
   rsvp_status text not null default 'pending'
@@ -106,7 +106,7 @@ create table if not exists public.meeting_documents (
   file_path text not null,
   file_type text default '',
   size_bytes bigint default 0,
-  uploaded_by uuid references auth.users (id) on delete set null,
+  uploaded_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
