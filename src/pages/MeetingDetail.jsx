@@ -388,7 +388,6 @@ export default function MeetingDetail() {
             <button
               onClick={() => downloadIcs(meeting)}
               className="btn-secondary px-3 py-1.5 text-xs"
-              title="Download .ics file"
             >
               <CalendarPlus size={14} />
               Add to calendar
@@ -398,7 +397,6 @@ export default function MeetingDetail() {
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
-              title="Add to Google Calendar"
             >
               <ExternalLink size={14} />
               Google Calendar
@@ -408,7 +406,6 @@ export default function MeetingDetail() {
                 <button
                   onClick={openScheduleModal}
                   className="btn-secondary px-3 py-1.5 text-xs"
-                  title="Change meeting schedule"
                 >
                   <CalendarClock size={14} />
                   Edit schedule
@@ -416,23 +413,26 @@ export default function MeetingDetail() {
                 <button
                   onClick={openReminderModal}
                   className="btn-secondary px-3 py-1.5 text-xs"
-                  title="Send a reminder to participants"
                 >
                   <Megaphone size={14} />
                   Send reminder
                 </button>
-                {statusActions.map((a) => (
-                  <button
-                    key={a.value}
-                    onClick={() => updateStatus(a.value)}
-                    className={cn('px-3 py-1.5 text-xs font-semibold rounded-lg transition', a.className || 'btn-secondary')}
-                  >
-                    {a.label}
-                  </button>
-                ))}
               </>
             )}
           </div>
+          {statusActions.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {statusActions.map((a) => (
+                <button
+                  key={a.value}
+                  onClick={() => updateStatus(a.value)}
+                  className={cn('px-3 py-1.5 text-xs font-semibold rounded-lg transition', a.className || 'btn-secondary')}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
