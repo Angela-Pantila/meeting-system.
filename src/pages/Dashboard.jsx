@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, CalendarCheck, CheckCircle2, ListChecks, Plus, Video, Building2 } from 'lucide-react'
+import { Calendar, CalendarCheck, CheckCircle2, ListChecks, Plus, Video, Building2, Bell } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MeetingCard from '../components/MeetingCard'
@@ -16,6 +16,9 @@ export default function Dashboard() {
   const [decisions, setDecisions] = useState(0)
   const [departments, setDepartments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [dismissed, setDismissed] = useState(new Set())
+  const dismissedRef = useRef(dismissed)
+  dismissedRef.current = dismissed
 
   useEffect(() => {
     const load = async () => {
@@ -78,11 +81,22 @@ export default function Dashboard() {
       setLoading(false)
     }
     load()
+
+    const interval = setInterval(() => {
+      setMeetings((prev) => [...prev])
+    }, 60000)
+    return () => clearInterval(interval)
   }, [])
 
   const upcoming = meetings.filter((m) =>
     ['requested', 'scheduled', 'in_progress'].includes(m.status),
   )
+  const now = Date.now()
+  const soonMeetings = upcoming.filter((m) => {
+    const start = new Date(m.start_time).getTime()
+    const diff = start - now
+    return diff > 0 && diff <= 30 * 60 * 1000
+  }).filter((m) => !dismissedRef.current.has(m.id))
   const completedCount = meetings.filter((m) => m.status === 'completed').length
   const openActions = myActions.length
   const today = new Date().toLocaleDateString(undefined, {
@@ -117,6 +131,43 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {!loading && soonMeetings.length > 0 && (
+        <div className="space-y-2">
+          {soonMeetings.map((m) => {
+            const mins = Math.round((new Date(m.start_time).getTime() - now) / 60000)
+            return (
+              <div
+                key={m.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                    <Bell size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900">
+                      Meeting starting in {mins} min{mins !== 1 ? 's' : ''}
+                    </p>
+                    <Link
+                      to={`/meetings/${m.id}`}
+                      className="text-sm font-medium text-amber-700 hover:underline"
+                    >
+                      {m.title}
+                    </Link>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDismissed((prev) => new Set([...prev, m.id]))}
+                  className="shrink-0 text-xs font-medium text-amber-600 hover:text-amber-800"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {loading ? (
         <Spinner />
