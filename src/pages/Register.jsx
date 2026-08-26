@@ -1,32 +1,62 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CalendarCheck, Mail, Lock, User, ArrowRight } from 'lucide-react'
+import { CalendarCheck, Mail, Lock, User, Phone, Building2, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { Alert } from '../components/ui'
 
 export default function Register() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [contactNumber, setContactNumber] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
+  const [departments, setDepartments] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState('password')
   const navigate = useNavigate()
 
+  useEffect(() => {
+    supabase.from('departments').select('id, name, code').order('name').then(({ data }) => {
+      setDepartments(data || [])
+      if (data?.length === 1) setDepartmentId(data[0].id)
+    })
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+    if (!departmentId) {
+      setError('Please select your department.')
+      return
+    }
+
     setLoading(true)
 
     if (mode === 'password') {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: {
+            full_name: fullName,
+            contact_number: contactNumber,
+            department_id: departmentId,
+          },
+        },
       })
       setLoading(false)
       if (error) {
-        setError(error.message)
+        if (error.message?.includes('already')) {
+          setError('An account with this email already exists.')
+        } else {
+          setError(error.message)
+        }
         return
       }
       navigate('/login')
@@ -35,11 +65,21 @@ export default function Register() {
       const { error: regErr } = await supabase.auth.signUp({
         email,
         password: fakePw,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: {
+            full_name: fullName,
+            contact_number: contactNumber,
+            department_id: departmentId,
+          },
+        },
       })
-      if (regErr && !regErr.message?.includes('already')) {
+      if (regErr) {
         setLoading(false)
-        setError(regErr.message)
+        if (regErr.message?.includes('already')) {
+          setError('An account with this email already exists.')
+        } else {
+          setError(regErr.message)
+        }
         return
       }
       const { error: otpErr } = await supabase.auth.signInWithOtp({ email })
@@ -69,7 +109,7 @@ export default function Register() {
               Your team deserves<br />better meetings.
             </h2>
             <p className="text-lg text-slate-400">
-              Create an account, get assigned to your department, and start scheduling in minutes.
+              Create an account, pick your department, and start scheduling in minutes.
             </p>
           </div>
         </div>
@@ -124,27 +164,75 @@ export default function Register() {
               </div>
             </div>
 
-            {mode === 'password' && (
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Password</label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
-                    placeholder="At least 6 characters"
-                  />
-                </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-300">Contact number</label>
+              <div className="relative">
+                <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="tel"
+                  value={contactNumber}
+                  onChange={(e) => setContactNumber(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
+                  placeholder="09XXXXXXXXX"
+                />
               </div>
-            )}
-
-            <div className="rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2.5 text-xs text-slate-400">
-              After registering, an admin will assign you to your department and role.
             </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-300">Department</label>
+              <div className="relative">
+                <Building2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <select
+                  required
+                  value={departmentId}
+                  onChange={(e) => setDepartmentId(e.target.value)}
+                  className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
+                >
+                  <option value="" className="bg-slate-900">Select department</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id} className="bg-slate-900">
+                      {d.code ? `${d.code} — ${d.name}` : d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {mode === 'password' && (
+              <>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-300">Password</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
+                      placeholder="At least 6 characters"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-300">Confirm password</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
+                      placeholder="Re-enter password"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             <button
               type="submit"

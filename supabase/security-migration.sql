@@ -3,6 +3,9 @@
 -- Run ONCE in Supabase Dashboard > SQL Editor on your deployed project.
 -- ============================================================
 
+-- ---------- 0. Add contact_number column ----------
+alter table public.profiles add column if not exists contact_number text default '';
+
 -- ---------- 1. Profiles: stop self-promotion ----------
 -- Previously any user could UPDATE their own row and set role='admin'.
 drop policy if exists "profiles select" on public.profiles;
@@ -142,3 +145,24 @@ create policy "meeting docs delete" on storage.objects
         and public.is_department_admin(m.department_id)
     )
   );
+
+-- ---------- 5. Update trigger to store contact_number ----------
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  is_first boolean;
+begin
+  select not exists (select 1 from public.profiles) into is_first;
+  insert into public.profiles (id, full_name, email, role, department_id, contact_number)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name', ''),
+    new.email,
+    case when is_first then 'admin' else 'staff' end,
+    (new.raw_user_meta_data ->> 'department_id')::uuid,
+    coalesce(new.raw_user_meta_data ->> 'contact_number', '')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Building2, Mail, Save, User } from 'lucide-react'
+import { Building2, Mail, Phone, Save, User } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { Alert } from '../components/ui'
@@ -10,6 +10,7 @@ import { cn } from '../lib/utils'
 export default function Profile() {
   const { profile, user, refreshProfile } = useAuth()
   const [fullName, setFullName] = useState(profile?.full_name || '')
+  const [contactNumber, setContactNumber] = useState(profile?.contact_number || '')
   const [department, setDepartment] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -17,6 +18,7 @@ export default function Profile() {
 
   useEffect(() => {
     setFullName(profile?.full_name || '')
+    setContactNumber(profile?.contact_number || '')
     if (profile?.department_id) {
       supabase
         .from('departments')
@@ -36,7 +38,7 @@ export default function Profile() {
     setSaved(false)
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName })
+      .update({ full_name: fullName, contact_number: contactNumber })
       .eq('id', user.id)
     setSaving(false)
     if (error) {
@@ -99,6 +101,18 @@ export default function Profile() {
             <div className="relative">
               <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input className="input pl-9" value={user?.email || ''} disabled />
+            </div>
+          </div>
+          <div>
+            <label className="label">Contact number</label>
+            <div className="relative">
+              <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                className="input pl-9"
+                value={contactNumber}
+                onChange={(e) => setContactNumber(e.target.value)}
+                placeholder="09XXXXXXXXX"
+              />
             </div>
           </div>
           <p className="text-xs text-slate-500">

@@ -26,6 +26,7 @@ create table if not exists public.profiles (
   role text not null default 'staff'
     check (role in ('staff', 'head', 'admin')),
   department_id uuid references public.departments (id) on delete set null,
+  contact_number text default '',
   avatar_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -283,13 +284,14 @@ declare
   is_first boolean;
 begin
   select not exists (select 1 from public.profiles) into is_first;
-  insert into public.profiles (id, full_name, email, role, department_id)
+  insert into public.profiles (id, full_name, email, role, department_id, contact_number)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
     new.email,
     case when is_first then 'admin' else 'staff' end,
-    (new.raw_user_meta_data ->> 'department_id')::uuid
+    (new.raw_user_meta_data ->> 'department_id')::uuid,
+    coalesce(new.raw_user_meta_data ->> 'contact_number', '')
   )
   on conflict (id) do nothing;
   return new;
