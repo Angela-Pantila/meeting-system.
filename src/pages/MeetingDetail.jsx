@@ -327,10 +327,11 @@ export default function MeetingDetail() {
   const isOnline = meeting.meeting_type === 'online'
   const isHybrid = meeting.meeting_type === 'hybrid'
   const isManager = profile?.role === 'admin' || profile?.role === 'head'
+  const isAdmin = profile?.role === 'admin'
 
   const statusActions = [
-    { label: 'Accept', value: 'scheduled', hidden: meeting.status !== 'requested', className: 'bg-emerald-600 text-white hover:bg-emerald-700' },
-    { label: 'Decline', value: 'cancelled', hidden: meeting.status !== 'requested', className: 'bg-rose-600 text-white hover:bg-rose-700' },
+    { label: 'Accept', value: 'scheduled', hidden: meeting.status !== 'requested' || !isAdmin, className: 'bg-emerald-600 text-white hover:bg-emerald-700' },
+    { label: 'Decline', value: 'cancelled', hidden: meeting.status !== 'requested' || !isAdmin, className: 'bg-rose-600 text-white hover:bg-rose-700' },
     { label: 'Mark in progress', value: 'in_progress', hidden: meeting.status === 'in_progress' || meeting.status === 'requested' || meeting.status === 'cancelled' },
     { label: 'Mark completed', value: 'completed', hidden: meeting.status === 'completed' || meeting.status === 'requested' || meeting.status === 'cancelled' },
     { label: 'Cancel meeting', value: 'cancelled', hidden: meeting.status === 'cancelled' || meeting.status === 'requested' },
