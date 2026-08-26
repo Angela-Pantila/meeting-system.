@@ -6,6 +6,11 @@
 -- ---------- 0. Add contact_number column ----------
 alter table public.profiles add column if not exists contact_number text default '';
 
+-- Departments readable by everyone (needed during registration before login)
+drop policy if exists "departments select" on public.departments;
+create policy "departments select" on public.departments
+  for select using (true);
+
 -- ---------- 1. Profiles: stop self-promotion ----------
 -- Previously any user could UPDATE their own row and set role='admin'.
 drop policy if exists "profiles select" on public.profiles;

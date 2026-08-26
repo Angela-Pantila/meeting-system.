@@ -306,9 +306,9 @@ create trigger on_auth_user_created
 -- RLS policies
 -- ============================================================
 
--- Departments: everyone can read; only admins manage.
+-- Departments: everyone can read (including unauthenticated for registration); only admins manage.
 create policy "departments select" on public.departments
-  for select using (auth.role() = 'authenticated');
+  for select using (true);
 create policy "departments insert" on public.departments
   for insert with check (public.current_user_role() = 'admin');
 create policy "departments update" on public.departments
