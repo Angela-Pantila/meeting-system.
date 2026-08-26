@@ -154,12 +154,7 @@ export default function MeetingDetail() {
       setError(error.message)
       return
     }
-    const { data: updated } = await supabase
-      .from('meetings')
-      .select('*')
-      .eq('id', id)
-      .single()
-    if (updated) setMeeting(updated)
+    await loadAll()
   }
 
   const openScheduleModal = () => {
