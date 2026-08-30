@@ -269,9 +269,9 @@ export default function CreateMeeting() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="label">Meeting room</label>
+              <label className="label">Venue</label>
               <select className="input" value={form.room_id} onChange={set('room_id')}>
-                <option value="">No room</option>
+                <option value="">No venue</option>
                 {roomsForDept.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.name}
@@ -281,7 +281,7 @@ export default function CreateMeeting() {
               </select>
               {roomsForDept.length === 0 && (
                 <p className="mt-1 text-xs text-slate-500">
-                  No rooms for this department yet. Ask the admin to add one.
+                  No venues for this department yet. Ask the admin to add one.
                 </p>
               )}
             </div>

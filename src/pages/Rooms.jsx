@@ -93,16 +93,16 @@ export default function Rooms() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Meeting rooms</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Venues</h1>
           <p className="text-sm text-slate-500">
             {isAdmin
-              ? 'Manage rooms for every department'
-              : `Rooms for ${departments.find((d) => d.id === profile?.department_id)?.name || 'your department'}`}
+              ? 'Manage venues for every department'
+              : `Venues for ${departments.find((d) => d.id === profile?.department_id)?.name || 'your department'}`}
           </p>
         </div>
         <button onClick={openModal} className="btn-primary px-3 py-2 text-sm">
           <Plus size={16} />
-          Add room
+          Add venue
         </button>
       </div>
 
@@ -113,8 +113,8 @@ export default function Rooms() {
       ) : rooms.length === 0 ? (
         <EmptyState
           icon={DoorOpen}
-          title="No rooms yet"
-          message="Add your meeting rooms so they can be selected when scheduling."
+          title="No venues yet"
+          message="Add your meeting venues so they can be selected when scheduling."
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -158,7 +158,7 @@ export default function Rooms() {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Add meeting room">
+      <Modal open={open} onClose={() => setOpen(false)} title="Add venue">
         <form onSubmit={submit} className="space-y-3">
           {isAdmin && (
             <div>
@@ -178,7 +178,7 @@ export default function Rooms() {
             </div>
           )}
           <div>
-            <label className="label">Room name *</label>
+            <label className="label">Venue name *</label>
             <input
               className="input"
               value={form.name}
@@ -218,7 +218,7 @@ export default function Rooms() {
             </div>
           </div>
           <button type="submit" disabled={saving} className={cn('btn-primary w-full')}>
-            {saving ? 'Adding…' : 'Add room'}
+            {saving ? 'Adding…' : 'Add venue'}
           </button>
         </form>
       </Modal>

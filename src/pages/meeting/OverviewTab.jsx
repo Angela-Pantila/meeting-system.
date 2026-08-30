@@ -100,7 +100,7 @@ export default function OverviewTab({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-500">No room assigned</p>
+            <p className="text-sm text-slate-500">No venue assigned</p>
           )}
           {(meeting.meeting_type === 'online' || meeting.meeting_type === 'hybrid') && (
             <div className="mt-4 border-t border-slate-100 pt-4">

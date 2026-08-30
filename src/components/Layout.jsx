@@ -96,7 +96,7 @@ function SidebarContent({ onNavigate }) {
             }
           >
             <DoorOpen size={18} />
-            Rooms
+            Venues
           </NavLink>
         )}
         {isAdmin && (

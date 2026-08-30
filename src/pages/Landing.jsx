@@ -16,7 +16,7 @@ const features = [
   {
     icon: CalendarCheck,
     title: 'Smart Scheduling',
-    desc: 'Create and manage meetings with room booking, time tracking, and calendar exports.',
+    desc: 'Create and manage meetings with venue booking, time tracking, and calendar exports.',
     color: 'bg-brand-500/20 text-brand-300',
   },
   {
@@ -33,8 +33,8 @@ const features = [
   },
   {
     icon: DoorOpen,
-    title: 'Room Management',
-    desc: 'Organize meeting rooms by department with capacity, location, and facility details.',
+    title: 'Venue Management',
+    desc: 'Organize meeting venues by department with capacity, location, and facility details.',
     color: 'bg-violet-500/20 text-violet-300',
   },
   {
